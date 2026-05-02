@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if isOwner(userId) || hasRole('admin');
+    }
+
+    match /programs/{programId} {
+      allow read: if true;
+      allow create: if hasRole('ong') || hasRole('admin');
+      allow update, delete: if hasRole('ong') || hasRole('admin');
+
+      match /registrations/{registrationId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update, delete: if request.auth.uid == registrationId || hasRole('admin');
+      }
+    }
+
+    match /donations/{donationId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if resource.data.BailleurId == request.auth.uid || hasRole('admin');
+    }
+
+    match /resource_persons/{personId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if resource.data.userId == request.auth.uid || hasRole('admin');
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || hasRole('admin'));
+      allow create: if true;
+      allow update, delete: if hasRole('admin');
+    }
+
+    match /chats/{chatId} {
+      allow read: if isAuthenticated() && (request.auth.uid in resource.data.participants || hasRole('admin'));
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && (request.auth.uid in resource.data.participants || hasRole('admin'));
+
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && (request.auth.uid in resource.data.participants || hasRole('admin'));
+        allow create: if isAuthenticated();
+        allow update, delete: if resource.data.senderId == request.auth.uid || hasRole('admin');
+      }
+    }
+  }
+}

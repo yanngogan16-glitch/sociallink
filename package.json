@@ -1,0 +1,34 @@
+{
+    "name": "sociallink",
+    "version": "1.0.0",
+    "description": "Plateforme sociale PWA pour connecter les communautés",
+    "main": "index.js",
+    "scripts": {
+        "build": "flutter build web --release",
+        "deploy": "npx firebase-tools deploy --only hosting,firestore",
+        "deploy:hosting": "npx firebase-tools deploy --only hosting",
+        "deploy:firestore": "npx firebase-tools deploy --only firestore",
+        "login": "npx firebase-tools login",
+        "serve": "npx firebase-tools serve",
+        "emulators": "npx firebase-tools emulators:start"
+    },
+    "devDependencies": {
+        "firebase-tools": "^15.15.0"
+    },
+    "keywords": [
+        "flutter",
+        "pwa",
+        "social",
+        "firebase",
+        "webapp"
+    ],
+    "author": "SocialLink Team",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/yourusername/sociallink"
+    },
+    "engines": {
+        "node": ">=14.0.0"
+    }
+}

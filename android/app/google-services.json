@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "534733405792",
+    "project_id": "sociallink-71308",
+    "storage_bucket": "sociallink-71308.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:534733405792:android:bf40345baddccfe7628d05",
+        "android_client_info": {
+          "package_name": "com.example.sociallink"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWi7JGrM_mJqZ5NwV5cD8hf-UtFaz60zk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
