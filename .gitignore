@@ -65,3 +65,4 @@ node_modules
 .claude/
 analyze_output*.txt
 skills-lock.json
+downloads/

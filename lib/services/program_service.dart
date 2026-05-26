@@ -12,25 +12,27 @@ class ProgramService {
   // ✅ Tous les programmes actifs (Donateur & Bénéficiaire)
   Stream<List<ProgramModel>> getActivePrograms() {
     return _db
-      .collection('programs')
-      .where('status', isEqualTo: 'active')
-      .orderBy('createdAt', descending: true)
-      .snapshots()
-      .map((snap) => snap.docs
-        .map((doc) => ProgramModel.fromFirestore(doc))
-        .toList());
+        .collection('programs')
+        .where('status', isEqualTo: 'active')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snap) =>
+              snap.docs.map((doc) => ProgramModel.fromFirestore(doc)).toList(),
+        );
   }
 
   // ✅ Programmes d'une ONG spécifique
   Stream<List<ProgramModel>> getOngPrograms(String ongId) {
     return _db
-      .collection('programs')
-      .where('ongId', isEqualTo: ongId)
-      .orderBy('createdAt', descending: true)
-      .snapshots()
-      .map((snap) => snap.docs
-        .map((doc) => ProgramModel.fromFirestore(doc))
-        .toList());
+        .collection('programs')
+        .where('ongId', isEqualTo: ongId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snap) =>
+              snap.docs.map((doc) => ProgramModel.fromFirestore(doc)).toList(),
+        );
   }
 
   // ✅ Inscrire un bénéficiaire
@@ -39,28 +41,36 @@ class ProgramService {
     required String userId,
     required String userName,
   }) async {
-    final batch = _db.batch();
-
-    // Ajouter dans la sous-collection inscriptions
     final regRef = _db
-      .collection('programs')
-      .doc(programId)
-      .collection('registrations')
-      .doc(userId);
-
-    batch.set(regRef, {
-      'userId': userId,
-      'userName': userName,
-      'registeredAt': FieldValue.serverTimestamp(),
-    });
-
-    // Incrémenter spotsTaken
+        .collection('programs')
+        .doc(programId)
+        .collection('registrations')
+        .doc(userId);
     final programRef = _db.collection('programs').doc(programId);
-    batch.update(programRef, {
-      'spotsTaken': FieldValue.increment(1),
-    });
 
-    await batch.commit();
+    await _db.runTransaction((transaction) async {
+      final regDoc = await transaction.get(regRef);
+      if (regDoc.exists) return;
+
+      final programDoc = await transaction.get(programRef);
+      final data = programDoc.data();
+      if (data == null) {
+        throw Exception('Programme introuvable.');
+      }
+
+      final spotsTaken = (data['spotsTaken'] as num?)?.toInt() ?? 0;
+      final spotsTotal = (data['spotsTotal'] as num?)?.toInt() ?? 0;
+      if (spotsTotal > 0 && spotsTaken >= spotsTotal) {
+        throw Exception('Ce programme est deja complet.');
+      }
+
+      transaction.set(regRef, {
+        'userId': userId,
+        'userName': userName,
+        'registeredAt': FieldValue.serverTimestamp(),
+      });
+      transaction.update(programRef, {'spotsTaken': FieldValue.increment(1)});
+    });
   }
 
   // ✅ Vérifier si déjà inscrit
@@ -69,11 +79,11 @@ class ProgramService {
     required String userId,
   }) async {
     final doc = await _db
-      .collection('programs')
-      .doc(programId)
-      .collection('registrations')
-      .doc(userId)
-      .get();
+        .collection('programs')
+        .doc(programId)
+        .collection('registrations')
+        .doc(userId)
+        .get();
     return doc.exists;
   }
 

@@ -20,7 +20,6 @@ class DonationHistoryScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-
           // Total donné
           FutureBuilder<double>(
             future: service.getMyTotalDonated(),
@@ -33,7 +32,8 @@ class DonationHistoryScreen extends StatelessWidget {
                   gradient: AppTheme.darkGoldGradient,
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: AppTheme.gold.withValues(alpha: 0.3)),
+                    color: AppTheme.gold.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -41,23 +41,26 @@ class DonationHistoryScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Total donné",
+                        const Text(
+                          "Total donné",
                           style: TextStyle(
                             fontSize: 12,
                             color: AppTheme.textLight,
                             letterSpacing: 1,
-                          )),
+                          ),
+                        ),
                         const SizedBox(height: 6),
                         ShaderMask(
                           shaderCallback: (b) =>
-                            AppTheme.goldGradient.createShader(b),
+                              AppTheme.goldGradient.createShader(b),
                           child: Text(
                             "${total.toStringAsFixed(0)} FCFA",
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
-                            )),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -67,8 +70,11 @@ class DonationHistoryScreen extends StatelessWidget {
                         gradient: AppTheme.goldGradient,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.volunteer_activism,
-                        color: AppTheme.bgDark, size: 24),
+                      child: const Icon(
+                        Icons.volunteer_activism,
+                        color: AppTheme.bgDark,
+                        size: 24,
+                      ),
                     ),
                   ],
                 ),
@@ -81,11 +87,10 @@ class DonationHistoryScreen extends StatelessWidget {
             child: StreamBuilder<List<DonationModel>>(
               stream: service.getMyDonations(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
-                    child: CircularProgressIndicator(
-                      color: AppTheme.gold));
+                    child: CircularProgressIndicator(color: AppTheme.gold),
+                  );
                 }
 
                 final donations = snapshot.data ?? [];
@@ -95,18 +100,21 @@ class DonationHistoryScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("Aucun don effectué",
+                        Text(
+                          "Aucun don effectué",
                           style: TextStyle(
                             color: AppTheme.textLight,
                             fontSize: 15,
-                          )),
+                          ),
+                        ),
                         SizedBox(height: 8),
                         Text(
                           "Soutenez un programme pour commencer",
                           style: TextStyle(
                             color: AppTheme.textLight,
                             fontSize: 13,
-                          )),
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -126,7 +134,7 @@ class DonationHistoryScreen extends StatelessWidget {
                     final statusLabel = switch (don.status) {
                       'confirmed' => 'Confirme',
                       'rejected' => 'Rejete',
-                      'pending' => 'En attente',
+                      'pending' => 'En attente ONG',
                       _ => don.status,
                     };
                     return Container(
@@ -136,91 +144,111 @@ class DonationHistoryScreen extends StatelessWidget {
                         color: AppTheme.bgCard,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: AppTheme.gold.withValues(alpha: 0.15)),
-                      ),
-                      child: Row(children: [
-                        Container(
-                          width: 48, height: 48,
-                          decoration: BoxDecoration(
-                            gradient: AppTheme.goldGradient,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.favorite,
-                            color: AppTheme.bgDark, size: 22),
+                          color: AppTheme.gold.withValues(alpha: 0.15),
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(don.programTitle,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.textWhite,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis),
-                              const SizedBox(height: 4),
-                              Text(
-                                DateFormat('dd MMM yyyy • HH:mm')
-                                  .format(don.createdAt),
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppTheme.textLight,
-                                )),
-                              if (don.message.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Text(don.message,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              gradient: AppTheme.goldGradient,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.favorite,
+                              color: AppTheme.bgDark,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  don.programTitle,
                                   style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppTheme.textLight,
-                                    fontStyle: FontStyle.italic,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.textWhite,
                                   ),
                                   maxLines: 1,
-                                  overflow: TextOverflow.ellipsis),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  DateFormat(
+                                    'dd MMM yyyy • HH:mm',
+                                  ).format(don.createdAt),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.textLight,
+                                  ),
+                                ),
+                                if (don.message.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    don.message,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppTheme.textLight,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ],
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            ShaderMask(
-                              shaderCallback: (b) =>
-                                AppTheme.goldGradient.createShader(b),
-                              child: Text(
-                                don.amount.toStringAsFixed(0),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                )),
                             ),
-                            const Text("FCFA",
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: AppTheme.textLight,
-                              )),
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: statusColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
+                          ),
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              ShaderMask(
+                                shaderCallback: (b) =>
+                                    AppTheme.goldGradient.createShader(b),
+                                child: Text(
+                                  don.amount.toStringAsFixed(0),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
-                              child: Text(statusLabel,
+                              const Text(
+                                "FCFA",
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: statusColor,
-                                  fontWeight: FontWeight.bold,
-                                )),
-                            ),
-                          ],
-                        ),
-                      ]),
+                                  color: AppTheme.textLight,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  statusLabel,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: statusColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     );
                   },
                 );

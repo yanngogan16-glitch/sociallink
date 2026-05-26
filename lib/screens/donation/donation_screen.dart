@@ -113,7 +113,7 @@ class _DonationScreenState extends State<DonationScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.check,
+                  Icons.hourglass_top,
                   color: AppTheme.bgDark,
                   size: 36,
                 ),
@@ -122,7 +122,7 @@ class _DonationScreenState extends State<DonationScreen> {
               ShaderMask(
                 shaderCallback: (b) => AppTheme.goldGradient.createShader(b),
                 child: const Text(
-                  "Don effectué !",
+                  "Don en attente",
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -141,9 +141,15 @@ class _DonationScreenState extends State<DonationScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                "pour ${widget.program.title}",
+                "Votre don pour ${widget.program.title} est en attente de confirmation par l'ONG.",
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 13, color: AppTheme.textLight),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "L'ONG doit contacter le service client SocialLink pour confirmer le paiement sur la plateforme.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: AppTheme.textLight),
               ),
               const SizedBox(height: 24),
               SizedBox(

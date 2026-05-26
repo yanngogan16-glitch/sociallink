@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -54,14 +55,22 @@ class AuthService {
   // ✅ Google Sign-In
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      final cred = await _auth.signInWithCredential(credential);
+      final UserCredential cred;
+
+      if (kIsWeb) {
+        final provider = GoogleAuthProvider()
+          ..setCustomParameters({'prompt': 'select_account'});
+        cred = await _auth.signInWithPopup(provider);
+      } else {
+        final googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) return null;
+        final googleAuth = await googleUser.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        cred = await _auth.signInWithCredential(credential);
+      }
       // Créer profil si nouveau
       final doc = await _db.collection('users').doc(cred.user!.uid).get();
       if (!doc.exists) {
@@ -73,6 +82,8 @@ class AuthService {
         );
       }
       return cred;
+    } on FirebaseAuthException catch (e) {
+      throw _handleError(e);
     } catch (e) {
       throw Exception("Erreur Google Sign-In : $e");
     }

@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Sociallink</string>
+	<string>SocialLink</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,13 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>sociallink</string>
+	<string>SocialLink</string>
+	<key>NSCameraUsageDescription</key>
+	<string>SocialLink utilise l'appareil photo pour ajouter des images aux profils, programmes et ressources.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>SocialLink utilise votre position pour afficher les ressources et programmes proches de vous.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SocialLink utilise votre galerie pour importer des images dans l'application.</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

@@ -36,13 +36,13 @@ class DefaultFirebaseOptions {
     appId: '1:534733405792:web:c0a685ff1da9b0a2628d05',
     messagingSenderId: '534733405792',
     projectId: 'sociallink-71308',
-    authDomain: 'sociallink-71308.web.app',
+    authDomain: 'sociallink-71308.firebaseapp.com',
     storageBucket: 'sociallink-71308.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDlI0HWX7FkXnUUDisJ6RrP5FlU7kRKUgk',
-    appId: '1:534733405792:android:2c3e4f5g6h7i8j9k0l',
+    apiKey: 'AIzaSyCWi7JGrM_mJqZ5NwV5cD8hf-UtFaz60zk',
+    appId: '1:534733405792:android:bf40345baddccfe7628d05',
     messagingSenderId: '534733405792',
     projectId: 'sociallink-71308',
     storageBucket: 'sociallink-71308.firebasestorage.app',

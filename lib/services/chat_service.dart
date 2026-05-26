@@ -23,6 +23,18 @@ class ChatService {
     required String otherName,
     required String myName,
   }) async {
+    if (_myUid.isEmpty) {
+      throw Exception('Vous devez etre connecte pour ouvrir une discussion.');
+    }
+    if (otherUid.isEmpty) {
+      throw Exception('Ce profil ne peut pas encore recevoir de messages.');
+    }
+    if (otherUid == _myUid) {
+      throw Exception(
+        'Vous ne pouvez pas ouvrir une discussion avec vous-meme.',
+      );
+    }
+
     final chatId = getChatId(_myUid, otherUid);
     final chatRef = _db.collection('chats').doc(chatId);
     final doc = await chatRef.get();
@@ -35,6 +47,13 @@ class ChatService {
         'lastMessageTime': FieldValue.serverTimestamp(),
         'unreadCounts': {_myUid: 0, otherUid: 0},
       });
+    } else {
+      await chatRef.set({
+        'participantNames.$_myUid': myName,
+        'participantNames.$otherUid': otherName,
+        'unreadCounts.$_myUid': FieldValue.increment(0),
+        'unreadCounts.$otherUid': FieldValue.increment(0),
+      }, SetOptions(merge: true));
     }
     return chatId;
   }
@@ -207,6 +226,7 @@ class ChatService {
 
   // ✅ Marquer messages comme lus
   Future<void> markAsRead(String chatId) async {
+    if (_myUid.isEmpty || chatId.isEmpty) return;
     await _db.collection('chats').doc(chatId).update({
       'unreadCounts.$_myUid': 0,
     });

@@ -71,16 +71,19 @@ class _DonationFormState extends State<DonationForm> {
         );
 
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Donation successful!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Don en attente de confirmation par l\'ONG.'),
+            backgroundColor: AppTheme.gold,
+          ),
+        );
 
         Navigator.of(context).pop();
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error making donation: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Le don n\'a pas pu etre enregistre : $e')),
+        );
       } finally {
         if (mounted) {
           setState(() {
@@ -111,7 +114,7 @@ class _DonationFormState extends State<DonationForm> {
                   decoration: InputDecoration(
                     labelText: 'Amount',
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.9),
+                    fillColor: Colors.white.withValues(alpha: 0.9),
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
@@ -132,7 +135,7 @@ class _DonationFormState extends State<DonationForm> {
                   decoration: InputDecoration(
                     labelText: 'Message (Optional)',
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.9),
+                    fillColor: Colors.white.withValues(alpha: 0.9),
                     border: OutlineInputBorder(),
                   ),
                   maxLines: 3,
@@ -143,7 +146,7 @@ class _DonationFormState extends State<DonationForm> {
                   decoration: InputDecoration(
                     labelText: 'Payment Method',
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.9),
+                    fillColor: Colors.white.withValues(alpha: 0.9),
                     border: OutlineInputBorder(),
                   ),
                   items: [

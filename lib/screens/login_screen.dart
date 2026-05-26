@@ -67,12 +67,13 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      await _auth.signInWithGoogle();
+      final cred = await _auth.signInWithGoogle();
+      if (cred == null) return;
       if (mounted) await _goToDashboard();
     } catch (e) {
       _showError(e.toString());
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

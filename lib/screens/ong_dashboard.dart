@@ -127,6 +127,9 @@ class OngDashboard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+            _PendingDonationsSection(ongId: uid),
+
+            const SizedBox(height: 24),
             const AnimatedScrollItem(
               delay: 0,
               child: SectionTitle("Mes Programmes"),
@@ -199,56 +202,7 @@ class OngDashboard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            const AnimatedScrollItem(
-              delay: 0,
-              child: SectionTitle("Dons en attente"),
-            ),
-            const SizedBox(height: 12),
-            AnimatedScrollItem(
-              delay: 0,
-              child: StreamBuilder<List<DonationModel>>(
-                stream: DonationService().getPendingDonationsForOng(uid),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(color: AppTheme.gold),
-                    );
-                  }
 
-                  final dons = snapshot.data ?? [];
-                  if (dons.isEmpty) {
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.bgSurface,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: AppTheme.gold.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          "Aucun don en attente",
-                          style: TextStyle(color: AppTheme.textLight),
-                        ),
-                      ),
-                    );
-                  }
-
-                  return Column(
-                    children: dons
-                        .map(
-                          (don) => AnimatedScrollItem(
-                            delay: 0,
-                            child: _PendingDonationCard(don: don),
-                          ),
-                        )
-                        .toList(),
-                  );
-                },
-              ),
-            ),
             const SizedBox(height: 80),
           ],
         ),
@@ -269,10 +223,138 @@ class OngDashboard extends StatelessWidget {
   }
 }
 
-class _PendingDonationCard extends StatelessWidget {
+class _PendingDonationsSection extends StatelessWidget {
+  final String ongId;
+
+  const _PendingDonationsSection({required this.ongId});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedScrollItem(
+      delay: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionTitle("Dons a valider"),
+          const SizedBox(height: 12),
+          const _DonationInfoBox(
+            message:
+                "Pour chaque don recu, contactez le service client SocialLink afin de confirmer le paiement sur la plateforme avant validation.",
+            color: AppTheme.gold,
+          ),
+          const SizedBox(height: 12),
+          if (ongId.isEmpty)
+            const _DonationInfoBox(
+              message: "Connectez-vous avec un compte ONG pour voir les dons.",
+              color: Colors.orange,
+            )
+          else
+            StreamBuilder<List<DonationModel>>(
+              stream: DonationService().getPendingDonationsForOng(ongId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppTheme.gold),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return _DonationInfoBox(
+                    message:
+                        "Impossible de charger les dons a valider : ${snapshot.error}",
+                    color: Colors.red,
+                  );
+                }
+
+                final dons = snapshot.data ?? [];
+                if (dons.isEmpty) {
+                  return const _DonationInfoBox(
+                    message: "Aucun don en attente de validation",
+                    color: AppTheme.gold,
+                  );
+                }
+
+                return Column(
+                  children: dons
+                      .map((don) => _PendingDonationCard(don: don))
+                      .toList(),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DonationInfoBox extends StatelessWidget {
+  final String message;
+  final Color color;
+
+  const _DonationInfoBox({required this.message, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.bgSurface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: AppTheme.textLight),
+      ),
+    );
+  }
+}
+
+class _PendingDonationCard extends StatefulWidget {
   final DonationModel don;
 
   const _PendingDonationCard({required this.don});
+
+  @override
+  State<_PendingDonationCard> createState() => _PendingDonationCardState();
+}
+
+class _PendingDonationCardState extends State<_PendingDonationCard> {
+  bool _loading = false;
+
+  DonationModel get don => widget.don;
+
+  Future<void> _handleAction({
+    required Future<void> Function() action,
+    required String successMessage,
+    required Color successColor,
+  }) async {
+    setState(() => _loading = true);
+    try {
+      await action();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(successMessage),
+            backgroundColor: successColor,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Action impossible : $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -336,21 +418,30 @@ class _PendingDonationCard extends StatelessWidget {
                     backgroundColor: Colors.green,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  onPressed: () async {
-                    await DonationService().confirmDonation(don.id);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Don confirme !"),
-                          backgroundColor: Colors.green,
+                  onPressed: _loading
+                      ? null
+                      : () => _handleAction(
+                          action: () =>
+                              DonationService().confirmDonation(don.id),
+                          successMessage: "Don confirme !",
+                          successColor: Colors.green,
                         ),
-                      );
-                    }
-                  },
-                  child: const Text(
-                    "CONFIRMER",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
+                  child: _loading
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          "VALIDER LE DON",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -361,9 +452,14 @@ class _PendingDonationCard extends StatelessWidget {
                     side: const BorderSide(color: Colors.red),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  onPressed: () async {
-                    await DonationService().rejectDonation(don.id);
-                  },
+                  onPressed: _loading
+                      ? null
+                      : () => _handleAction(
+                          action: () =>
+                              DonationService().rejectDonation(don.id),
+                          successMessage: "Don rejete.",
+                          successColor: Colors.red,
+                        ),
                   child: const Text(
                     "REJETER",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),

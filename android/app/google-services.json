@@ -12,7 +12,12 @@
           "package_name": "com.example.sociallink"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "534733405792-ii79r7igdrikmhvj35vcp9ruvpqh1q1b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCWi7JGrM_mJqZ5NwV5cD8hf-UtFaz60zk"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "534733405792-ii79r7igdrikmhvj35vcp9ruvpqh1q1b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

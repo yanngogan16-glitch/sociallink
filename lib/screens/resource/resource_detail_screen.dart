@@ -169,31 +169,47 @@ class ResourceDetailScreen extends StatelessWidget {
                   ),
                   // ✅ onPressed avec vraie messagerie
                   onPressed: () async {
-                    final user = FirebaseAuth.instance.currentUser!;
-                    final userDoc = await FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(user.uid)
-                        .get();
-                    final myName = userDoc.data()?['name'] ?? 'Utilisateur';
+                    try {
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (user == null) {
+                        throw Exception(
+                          'Connectez-vous pour contacter cet expert.',
+                        );
+                      }
+                      final userDoc = await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(user.uid)
+                          .get();
+                      final myName =
+                          userDoc.data()?['name'] ??
+                          user.displayName ??
+                          'Utilisateur';
 
-                    final chatService = ChatService();
-                    final chatId = await chatService.getOrCreateChat(
-                      otherUid: person.userId,
-                      otherName: person.name,
-                      myName: myName,
-                    );
-
-                    if (context.mounted) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChatScreen(
-                            chatId: chatId,
-                            otherUid: person.userId,
-                            otherName: person.name,
-                          ),
-                        ),
+                      final chatService = ChatService();
+                      final chatId = await chatService.getOrCreateChat(
+                        otherUid: person.userId,
+                        otherName: person.name,
+                        myName: myName,
                       );
+
+                      if (context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ChatScreen(
+                              chatId: chatId,
+                              otherUid: person.userId,
+                              otherName: person.name,
+                            ),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(e.toString())));
+                      }
                     }
                   },
                   child: const Text(

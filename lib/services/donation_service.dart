@@ -40,21 +40,49 @@ class DonationService {
     );
 
     // 2. Envoyer message automatique à l'ONG
-    final chatId = await _chatService.getOrCreateChat(
-      otherUid: ongId,
-      otherName: ongName,
-      myName: donorName,
-    );
+    await _db.collection('notifications').add({
+      'userId': ongId,
+      'title': 'Don en attente de confirmation',
+      'message':
+          'Un don de ${amount.toStringAsFixed(0)} FCFA a ete realise pour '
+          '"$programTitle". Contactez le service client SocialLink pour '
+          'confirmer le paiement sur la plateforme avant validation.',
+      'type': 'donation_pending',
+      'donationId': donationRef.id,
+      'programId': programId,
+      'read': false,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
 
-    await _chatService.sendTextMessage(
-      chatId: chatId,
-      content:
-          "Bonjour ! Je viens d'effectuer un don de "
-          "${amount.toStringAsFixed(0)} FCFA pour votre programme "
-          "\"$programTitle\". Merci de confirmer la reception.",
-      senderName: donorName,
-      otherUid: ongId,
-    );
+    try {
+      final chatId = await _chatService.getOrCreateChat(
+        otherUid: ongId,
+        otherName: ongName,
+        myName: donorName,
+      );
+
+      final donorMessage = message.trim();
+      final content = StringBuffer()
+        ..write(
+          "Bonjour ! Un don de ${amount.toStringAsFixed(0)} FCFA vient "
+          "d'etre realise pour votre programme \"$programTitle\". "
+          "Merci de contacter le service client SocialLink afin de confirmer "
+          "le paiement sur la plateforme avant validation dans votre tableau ONG.",
+        );
+
+      if (donorMessage.isNotEmpty) {
+        content.write("\n\nMessage du donateur : $donorMessage");
+      }
+
+      await _chatService.sendTextMessage(
+        chatId: chatId,
+        content: content.toString(),
+        senderName: donorName,
+        otherUid: ongId,
+      );
+    } catch (_) {
+      // Le don reste en attente meme si le message automatique n'a pas pu etre envoye.
+    }
   }
 
   Future<void> createDonation({
@@ -104,9 +132,29 @@ class DonationService {
 
   // ✅ ONG rejette le don
   Future<void> rejectDonation(String donationId) async {
-    await _db.collection('donations').doc(donationId).update({
-      'status': 'rejected',
-    });
+    final donRef = _db.collection('donations').doc(donationId);
+    final don = await donRef.get();
+    final data = don.data();
+    if (data == null || data['status'] == 'rejected') return;
+
+    await donRef.update({'status': 'rejected'});
+
+    final myDoc = await _db.collection('users').doc(_myUid).get();
+    final senderName = myDoc.data()?['name'] ?? 'SocialLink';
+    final chatId = await _chatService.getOrCreateChat(
+      otherUid: data['donorId'],
+      otherName: data['donorName'] ?? 'Donateur',
+      myName: senderName,
+    );
+    await _chatService.sendTextMessage(
+      chatId: chatId,
+      content:
+          "Votre don de ${data['amount']} FCFA pour "
+          "\"${data['programTitle']}\" n'a pas ete valide. "
+          "Vous pouvez contacter l'ONG pour plus de details.",
+      senderName: senderName,
+      otherUid: data['donorId'],
+    );
   }
 
   // ✅ Dons en attente pour une ONG
@@ -115,12 +163,14 @@ class DonationService {
         .collection('donations')
         .where('ongId', isEqualTo: ongId)
         .where('status', isEqualTo: 'pending')
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map(
-          (snap) =>
-              snap.docs.map((doc) => DonationModel.fromFirestore(doc)).toList(),
-        );
+        .map((snap) {
+          final donations = snap.docs
+              .map((doc) => DonationModel.fromFirestore(doc))
+              .toList();
+          donations.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return donations;
+        });
   }
 
   // ✅ Historique dons confirmés du bailleur
